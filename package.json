@@ -1,0 +1,34 @@
+{
+  "name": "jn-lms-monorepo",
+  "version": "1.0.0",
+  "description": "JN LMS — Modern Learning Management System with AI Learning Assistant",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm --workspace=server run dev",
+    "dev:client": "npm --workspace=client run dev",
+    "dev": "npm run dev:server",
+    "install:all": "npm install && npm --workspace=server install && npm --workspace=client install",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "prisma:generate": "npm --workspace=server run prisma:generate",
+    "prisma:migrate": "npm --workspace=server run prisma:migrate",
+    "prisma:studio": "npm --workspace=server run prisma:studio",
+    "prisma:seed": "npm --workspace=server run prisma:seed"
+  },
+  "keywords": [
+    "lms",
+    "learning-management-system",
+    "ai",
+    "rag",
+    "react",
+    "express",
+    "prisma",
+    "pgvector"
+  ],
+  "author": "JN LMS Team",
+  "license": "ISC"
+}
