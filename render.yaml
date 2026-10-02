@@ -9,7 +9,7 @@ services:
     name: jn-lms-api
     runtime: node
     rootDir: server
-    buildCommand: npm install && npx prisma generate && npx prisma db push
+    buildCommand: npm install && npx prisma generate && npx prisma db push && node prisma/seed.js
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
