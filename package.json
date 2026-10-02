@@ -3,21 +3,17 @@
   "version": "1.0.0",
   "description": "JN LMS — Modern Learning Management System with AI Learning Assistant",
   "private": true,
-  "workspaces": [
-    "server",
-    "client"
-  ],
   "scripts": {
-    "dev:server": "npm --workspace=server run dev",
-    "dev:client": "npm --workspace=client run dev",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
     "dev": "npm run dev:server",
-    "install:all": "npm install && npm --workspace=server install && npm --workspace=client install",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "prisma:generate": "npm --workspace=server run prisma:generate",
-    "prisma:migrate": "npm --workspace=server run prisma:migrate",
-    "prisma:studio": "npm --workspace=server run prisma:studio",
-    "prisma:seed": "npm --workspace=server run prisma:seed"
+    "prisma:generate": "cd server && npx prisma generate",
+    "prisma:migrate": "cd server && npx prisma migrate dev",
+    "prisma:studio": "cd server && npx prisma studio",
+    "prisma:seed": "cd server && node prisma/seed.js"
   },
   "keywords": [
     "lms",
