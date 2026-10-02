@@ -62,17 +62,17 @@ enum SubmissionStatus {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
   firstName    String
   lastName     String
-  role         UserRole  @default(STUDENT)
+  role         UserRole @default(STUDENT)
   avatarUrl    String?
   bio          String?
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relationships
   instructedCourses     Course[]               @relation("InstructorCourses")
@@ -101,7 +101,7 @@ model Course {
   updatedAt   DateTime @updatedAt
 
   instructorId String
-  instructor   User     @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Restrict)
+  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Restrict)
 
   // Relationships
   enrollments     Enrollment[]
@@ -194,15 +194,15 @@ model Document {
 }
 
 model DocumentChunk {
-  id         String   @id @default(cuid())
+  id         String                       @id @default(cuid())
   documentId String
   chunkIndex Int
-  content    String   @db.Text
+  content    String                       @db.Text
   pageNumber Int?
   tokenCount Int?
   metadata   Json?
   embedding  Unsupported("vector(1536)")?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime                     @default(now())
 
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
@@ -250,20 +250,20 @@ model AssignmentSubmission {
 }
 
 model Quiz {
-  id                    String     @id @default(cuid())
-  courseId              String
-  title                 String
-  description           String?    @db.Text
-  timeLimitMinutes      Int?
-  passMark              Float?     @default(50)
-  maxAttempts           Int        @default(1)
-  shuffleQuestions      Boolean    @default(false)
-  showResultsImmediate  Boolean    @default(true)
-  availableFrom         DateTime?
-  availableUntil        DateTime?
-  status                QuizStatus @default(DRAFT)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+  id                   String     @id @default(cuid())
+  courseId             String
+  title                String
+  description          String?    @db.Text
+  timeLimitMinutes     Int?
+  passMark             Float?     @default(50)
+  maxAttempts          Int        @default(1)
+  shuffleQuestions     Boolean    @default(false)
+  showResultsImmediate Boolean    @default(true)
+  availableFrom        DateTime?
+  availableUntil       DateTime?
+  status               QuizStatus @default(DRAFT)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
   course    Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   questions Question[]
@@ -279,19 +279,19 @@ model Question {
   courseId      String?
   questionText  String       @db.Text
   questionType  QuestionType @default(MULTIPLE_CHOICE)
-  options       Json?        // Array of options: [{ id: "A", text: "..." }]
+  options       Json? // Array of options: [{ id: "A", text: "..." }]
   correctAnswer String       @db.Text // Never exposed before submission
   explanation   String?      @db.Text
   points        Float        @default(1)
   topic         String?
-  difficulty    String?      // EASY, MEDIUM, HARD
+  difficulty    String? // EASY, MEDIUM, HARD
   isAiGenerated Boolean      @default(false)
   isApproved    Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  quiz          Quiz?           @relation(fields: [quizId], references: [id], onDelete: SetNull)
-  course        Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  quiz           Quiz?           @relation(fields: [quizId], references: [id], onDelete: SetNull)
+  course         Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
   attemptAnswers AttemptAnswer[]
 
   @@index([quizId])
@@ -321,14 +321,14 @@ model QuizAttempt {
 }
 
 model AttemptAnswer {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   attemptId     String
   questionId    String
-  studentAnswer String    @db.Text
+  studentAnswer String   @db.Text
   isCorrect     Boolean?
   pointsAwarded Float?
-  feedback      String?   @db.Text
-  answeredAt    DateTime  @default(now())
+  feedback      String?  @db.Text
+  answeredAt    DateTime @default(now())
 
   attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -409,9 +409,9 @@ model AIConversation {
 model AIMessage {
   id             String   @id @default(cuid())
   conversationId String
-  role           String   // "user" | "assistant" | "system"
+  role           String // "user" | "assistant" | "system"
   content        String   @db.Text
-  citations      Json?    // Array of sources: [{ documentId, title, pageNumber, snippet }]
+  citations      Json? // Array of sources: [{ documentId, title, pageNumber, snippet }]
   tokenCount     Int?
   createdAt      DateTime @default(now())
 
@@ -425,7 +425,7 @@ model Notification {
   userId    String
   title     String
   message   String   @db.Text
-  type      String   // "ASSIGNMENT", "QUIZ", "GRADE", "ANNOUNCEMENT", "AI", "SYSTEM"
+  type      String // "ASSIGNMENT", "QUIZ", "GRADE", "ANNOUNCEMENT", "AI", "SYSTEM"
   isRead    Boolean  @default(false)
   linkUrl   String?
   createdAt DateTime @default(now())

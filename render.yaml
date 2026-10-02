@@ -1,0 +1,69 @@
+# render.yaml — JN LMS Infrastructure Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # ─────────────────────────────────────────────
+  # Backend API: Node.js Express Server
+  # ─────────────────────────────────────────────
+  - type: web
+    name: jn-lms-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npx prisma db push
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      # Set these in the Render Dashboard → Environment tab:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jn-lms-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: jn-lms-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      # AI settings — update these in Render Dashboard if using real OpenAI
+      - key: AI_PROVIDER
+        value: mock
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: AI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+      # Storage settings
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: STORAGE_LOCAL_DIR
+        value: ./uploads
+
+  # ─────────────────────────────────────────────
+  # PostgreSQL Database (with pgvector)
+  # Note: Render's managed Postgres does NOT
+  # include pgvector. Use the free "Neon" plan
+  # or add the extension manually — see README.
+  # ─────────────────────────────────────────────
+databases:
+  - name: jn-lms-db
+    databaseName: jn_lms
+    user: jn_lms_user
+    plan: free
+
+  # ─────────────────────────────────────────────
+  # Redis (for BullMQ job queue + token budgets)
+  # ─────────────────────────────────────────────
+  # Render Redis is defined separately in the dashboard.
+  # Add it as a Redis service named "jn-lms-redis".
