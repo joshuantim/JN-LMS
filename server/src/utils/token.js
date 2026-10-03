@@ -44,7 +44,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-origin (Vercel → Render)
     path: '/',
   };
 
@@ -66,7 +66,7 @@ export const clearAuthCookies = (res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-origin (Vercel → Render)
     path: '/',
   };
 
