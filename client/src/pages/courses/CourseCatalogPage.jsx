@@ -132,16 +132,40 @@ export const CourseCatalogPage = () => {
         </div>
 
         {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search code or title..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none"
-          />
-        </div>
+        <form
+          className="relative w-full sm:w-80 flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setDebouncedSearch(searchTerm); // trigger immediately on Enter
+            fetchCourses(searchTerm);
+          }}
+        >
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search code or title..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setDebouncedSearch(''); fetchCourses(''); }}
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="shrink-0 rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700 transition"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       {/* Courses Grid */}
