@@ -4,7 +4,7 @@ import { createRequire } from 'module';
 import mammoth from 'mammoth';
 
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+const pdfParseModule = require('pdf-parse');
 
 export class DocumentExtractor {
   static async extractText(input, fileType) {
@@ -35,31 +35,65 @@ export class DocumentExtractor {
   }
 
   static async extractFromPdf(dataBuffer) {
-    // Parse PDF
-    const data = await pdfParse(dataBuffer);
-    const fullText = (data.text || '').trim();
-    const numPages = data.numpages || 1;
-
-    // Approximate pages by form-feed character (\f) or uniform splitting
+    let fullText = '';
+    let numPages = 1;
     let pages = [];
-    if (fullText.includes('\f')) {
-      const pageTexts = fullText.split('\f');
-      pages = pageTexts.map((text, idx) => ({
-        pageNumber: idx + 1,
-        text: text.trim(),
-      })).filter((p) => p.text.length > 0);
+
+    // Support pdf-parse v2 (PDFParse class)
+    if (pdfParseModule?.PDFParse) {
+      const parser = new pdfParseModule.PDFParse({ data: dataBuffer });
+      try {
+        const result = await parser.getText();
+        fullText = (result.text || '').trim();
+        numPages = result.total || 1;
+        if (Array.isArray(result.pages) && result.pages.length > 0) {
+          pages = result.pages
+            .map((p, idx) => ({
+              pageNumber: p.num || idx + 1,
+              text: (p.text || '').trim(),
+            }))
+            .filter((p) => p.text.length > 0);
+        }
+      } finally {
+        if (typeof parser.destroy === 'function') {
+          await parser.destroy().catch(() => {});
+        }
+      }
+    } else if (typeof pdfParseModule === 'function') {
+      // Support pdf-parse v1 (function)
+      const data = await pdfParseModule(dataBuffer);
+      fullText = (data.text || '').trim();
+      numPages = data.numpages || 1;
+    } else if (typeof pdfParseModule?.default === 'function') {
+      const data = await pdfParseModule.default(dataBuffer);
+      fullText = (data.text || '').trim();
+      numPages = data.numpages || 1;
     } else {
-      // Split into approximate page segments if \f not present
-      const avgCharsPerPage = Math.ceil(fullText.length / numPages);
-      for (let i = 0; i < numPages; i++) {
-        const start = i * avgCharsPerPage;
-        const end = Math.min(start + avgCharsPerPage, fullText.length);
-        const segment = fullText.slice(start, end).trim();
-        if (segment) {
-          pages.push({
-            pageNumber: i + 1,
-            text: segment,
-          });
+      throw new Error('PDF parsing library is unavailable or incompatible');
+    }
+
+    // Approximate pages if pages array is empty but fullText exists
+    if (pages.length === 0 && fullText.length > 0) {
+      if (fullText.includes('\f')) {
+        const pageTexts = fullText.split('\f');
+        pages = pageTexts
+          .map((text, idx) => ({
+            pageNumber: idx + 1,
+            text: text.trim(),
+          }))
+          .filter((p) => p.text.length > 0);
+      } else {
+        const avgCharsPerPage = Math.ceil(fullText.length / Math.max(1, numPages));
+        for (let i = 0; i < numPages; i++) {
+          const start = i * avgCharsPerPage;
+          const end = Math.min(start + avgCharsPerPage, fullText.length);
+          const segment = fullText.slice(start, end).trim();
+          if (segment) {
+            pages.push({
+              pageNumber: i + 1,
+              text: segment,
+            });
+          }
         }
       }
     }
