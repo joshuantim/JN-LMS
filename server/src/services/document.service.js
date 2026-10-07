@@ -5,6 +5,7 @@ import { DocumentExtractor } from '../ai/extractor.js';
 import { SemanticChunker } from '../ai/chunker.js';
 import { EmbeddingService } from '../ai/embedding.service.js';
 import { enqueueDocumentProcessing } from '../jobs/document.queue.js';
+import { storageService } from './storage.service.js';
 
 export class DocumentService {
   /**
@@ -48,6 +49,9 @@ export class DocumentService {
     const cleanExt = path.extname(file.originalname).toLowerCase().replace('.', '');
     const docTitle = title || file.originalname.replace(/\.[^/.]+$/, '');
 
+    // Upload to storage (Cloudflare R2 if configured, or local fallback)
+    const uploadResult = await storageService.uploadFile(file);
+
     const document = await prisma.document.create({
       data: {
         courseId: courseId || null,
@@ -57,8 +61,8 @@ export class DocumentService {
         fileType: cleanExt,
         mimeType: file.mimetype,
         fileSize: file.size,
-        storageKey: file.path,
-        storageUrl: `/uploads/documents/${file.filename}`,
+        storageKey: uploadResult.storageKey,
+        storageUrl: uploadResult.storageUrl,
         status: 'UPLOADED',
       },
       include: {
@@ -94,7 +98,8 @@ export class DocumentService {
       });
 
       console.log(`[Document Processor] Extracting text for ${doc.fileName} (${doc.fileType})...`);
-      const extracted = await DocumentExtractor.extractText(doc.storageKey, doc.fileType);
+      const fileBuffer = await storageService.getFileBuffer(doc.storageKey);
+      const extracted = await DocumentExtractor.extractText(fileBuffer, doc.fileType);
 
       if (!extracted.text || extracted.text.trim().length === 0) {
         throw new Error('No readable text content could be extracted from this document.');
@@ -264,14 +269,12 @@ export class DocumentService {
       throw error;
     }
 
-    // Unlink physical file if exists
+    // Remove file from storage (Cloudflare R2 and/or local disk)
     if (document.storageKey) {
       try {
-        if (fs.existsSync(document.storageKey)) {
-          await fs.promises.unlink(document.storageKey);
-        }
+        await storageService.deleteFile(document.storageKey);
       } catch (err) {
-        console.warn('Could not remove file on disk:', err.message);
+        console.warn('Could not remove file from storage:', err.message);
       }
     }
 

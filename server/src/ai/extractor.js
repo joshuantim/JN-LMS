@@ -7,30 +7,34 @@ const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
 
 export class DocumentExtractor {
-  static async extractText(filePath, fileType) {
-    const ext = fileType ? `.${fileType.replace('.', '').toLowerCase()}` : path.extname(filePath).toLowerCase();
+  static async extractText(input, fileType) {
+    const ext = fileType
+      ? `.${fileType.replace('.', '').toLowerCase()}`
+      : typeof input === 'string'
+      ? path.extname(input).toLowerCase()
+      : '';
+
+    const buffer = Buffer.isBuffer(input) ? input : await fs.promises.readFile(input);
 
     switch (ext) {
       case '.pdf':
-        return this.extractFromPdf(filePath);
+        return this.extractFromPdf(buffer);
       case '.docx':
       case '.doc':
-        return this.extractFromDocx(filePath);
+        return this.extractFromDocx(buffer);
       case '.txt':
       case '.md':
       case '.markdown':
-        return this.extractFromPlainText(filePath);
+        return this.extractFromPlainText(buffer);
       case '.pptx':
-        return this.extractFromPptx(filePath);
+        return this.extractFromPptx(buffer);
       default:
         // Try plain text as fallback
-        return this.extractFromPlainText(filePath);
+        return this.extractFromPlainText(buffer);
     }
   }
 
-  static async extractFromPdf(filePath) {
-    const dataBuffer = await fs.promises.readFile(filePath);
-    
+  static async extractFromPdf(dataBuffer) {
     // Parse PDF
     const data = await pdfParse(dataBuffer);
     const fullText = (data.text || '').trim();
@@ -71,8 +75,8 @@ export class DocumentExtractor {
     };
   }
 
-  static async extractFromDocx(filePath) {
-    const result = await mammoth.extractRawText({ path: filePath });
+  static async extractFromDocx(buffer) {
+    const result = await mammoth.extractRawText({ buffer });
     const fullText = (result.value || '').trim();
 
     return {
@@ -82,8 +86,8 @@ export class DocumentExtractor {
     };
   }
 
-  static async extractFromPlainText(filePath) {
-    const content = await fs.promises.readFile(filePath, 'utf8');
+  static async extractFromPlainText(buffer) {
+    const content = buffer.toString('utf8');
     const fullText = content.trim();
 
     return {
@@ -93,10 +97,9 @@ export class DocumentExtractor {
     };
   }
 
-  static async extractFromPptx(filePath) {
+  static async extractFromPptx(buffer) {
     // Basic text extraction for presentation slides
     try {
-      const buffer = await fs.promises.readFile(filePath);
       const str = buffer.toString('utf8');
       // Extract XML slide text tags: <a:t>text</a:t>
       const matches = str.match(/<a:t>([^<]+)<\/a:t>/g);
@@ -113,7 +116,7 @@ export class DocumentExtractor {
       console.warn('PPTX parsing fallback:', err.message);
     }
 
-    return this.extractFromPlainText(filePath);
+    return this.extractFromPlainText(buffer);
   }
 }
 
