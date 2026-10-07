@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { courseService } from '../../services/course.service';
 import CreateCourseModal from './CreateCourseModal';
@@ -18,14 +18,23 @@ import {
 export const CourseCatalogPage = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
 
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
   const [tab, setTab] = useState('ALL'); // 'ALL' | 'ENROLLED'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  // Sync state if URL query param changes (e.g. from top Navbar search)
+  useEffect(() => {
+    const q = searchParams.get('search') || '';
+    setSearchTerm(q);
+    setDebouncedSearch(q);
+  }, [searchParams]);
 
   // Debounce: wait 350ms after user stops typing before searching
   useEffect(() => {
@@ -137,7 +146,12 @@ export const CourseCatalogPage = () => {
           onSubmit={(e) => {
             e.preventDefault();
             setDebouncedSearch(searchTerm); // trigger immediately on Enter
-            fetchCourses(searchTerm);
+            if (searchTerm.trim()) {
+              setSearchParams({ search: searchTerm.trim() }, { replace: true });
+            } else {
+              setSearchParams({}, { replace: true });
+            }
+            fetchCourses(searchTerm.trim());
           }}
         >
           <div className="relative flex-1">
@@ -152,7 +166,12 @@ export const CourseCatalogPage = () => {
             {searchTerm && (
               <button
                 type="button"
-                onClick={() => { setSearchTerm(''); setDebouncedSearch(''); fetchCourses(''); }}
+                onClick={() => {
+                  setSearchTerm('');
+                  setDebouncedSearch('');
+                  setSearchParams({}, { replace: true });
+                  fetchCourses('');
+                }}
                 className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
               >
                 ✕
