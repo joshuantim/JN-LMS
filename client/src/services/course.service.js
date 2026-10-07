@@ -4,6 +4,7 @@ export const courseService = {
   // Course Catalog & Details
   getCourses: async (params = {}) => {
     const response = await api.get('/courses', { params });
+    // Interceptor returns response.data = { success, message, data: { courses, pagination } }
     return response.data;
   },
 
@@ -85,3 +86,4 @@ export const courseService = {
     return response.data;
   },
 };
+

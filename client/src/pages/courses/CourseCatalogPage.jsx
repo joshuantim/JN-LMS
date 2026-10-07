@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { courseService } from '../../services/course.service';
@@ -22,32 +22,41 @@ export const CourseCatalogPage = () => {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [tab, setTab] = useState('ALL'); // 'ALL' | 'ENROLLED'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const fetchCourses = async () => {
+  // Debounce: wait 350ms after user stops typing before searching
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const fetchCourses = useCallback(async (search) => {
     setIsLoading(true);
     try {
-      const data = await courseService.getCourses({ search: searchTerm });
-      setCourses(data.courses || []);
+      const res = await courseService.getCourses(search ? { search } : {});
+      // Axios interceptor returns response.data = { success, message, data: { courses, pagination } }
+      setCourses(res?.courses || res?.data?.courses || []);
     } catch (err) {
       console.error('Failed to fetch courses:', err);
+      setCourses([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchCourses();
-  }, [searchTerm]);
+    fetchCourses(debouncedSearch);
+  }, [debouncedSearch, fetchCourses]);
 
   const handleEnroll = async (courseId, e) => {
     e.stopPropagation();
     setActionLoadingId(courseId);
     try {
       await courseService.enrollInCourse(courseId);
-      await fetchCourses();
+      await fetchCourses(debouncedSearch);
     } catch (err) {
       alert(err.message || 'Failed to enroll');
     } finally {
