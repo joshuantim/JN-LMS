@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import {
   LayoutDashboard,
@@ -22,6 +22,12 @@ import {
 export const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
   const role = user?.role || 'STUDENT';
+
+  const getHomeRoute = () => {
+    if (role === 'ADMIN') return '/admin';
+    if (role === 'INSTRUCTOR') return '/instructor';
+    return '/dashboard';
+  };
 
   // Navigation sets based on user role
   const studentNav = [
@@ -82,19 +88,24 @@ export const Sidebar = ({ isOpen, onClose }) => {
       >
         {/* Brand header */}
         <div className="flex h-16 items-center justify-between border-b border-slate-100 px-6">
-          <div className="flex items-center space-x-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-accent-600 text-white shadow-soft-md">
+          <Link
+            to={getHomeRoute()}
+            onClick={onClose}
+            className="group flex items-center space-x-2.5 rounded-xl transition hover:opacity-90 focus:outline-none"
+            title="Go to Dashboard"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-accent-600 text-white shadow-soft-md group-hover:scale-105 transition-transform duration-200">
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-lg font-bold tracking-tight text-slate-900">
+              <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
                 JN <span className="text-brand-600">LMS</span>
               </span>
               <span className="block text-[10px] uppercase font-bold tracking-widest text-slate-400">
                 Enterprise
               </span>
             </div>
-          </div>
+          </Link>
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 lg:hidden"
