@@ -174,6 +174,7 @@ export class DocumentService {
       where.OR = [
         { uploaderId: user.id },
         { courseId: { in: enrolledCourseIds } },
+        { courseId: null },
       ];
     } else if (user.role === 'INSTRUCTOR') {
       const courses = await prisma.course.findMany({
@@ -185,6 +186,7 @@ export class DocumentService {
       where.OR = [
         { uploaderId: user.id },
         { courseId: { in: instructorCourseIds } },
+        { courseId: null },
       ];
     }
 
@@ -208,6 +210,43 @@ export class DocumentService {
         _count: { select: { chunks: true } },
       },
     });
+  }
+
+  /**
+   * Download document binary from storage (Cloudflare R2 or local disk)
+   */
+  static async downloadDocument(id, user) {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: { course: true },
+    });
+
+    if (!document) {
+      const error = new Error('Document not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Verify access
+    if (user.role === 'STUDENT' && document.courseId) {
+      const enrollment = await prisma.enrollment.findFirst({
+        where: { courseId: document.courseId, userId: user.id, status: 'ACTIVE' },
+      });
+      if (!enrollment && document.uploaderId !== user.id) {
+        const error = new Error('Forbidden: You are not enrolled in this course');
+        error.statusCode = 403;
+        throw error;
+      }
+    } else if (user.role === 'INSTRUCTOR' && document.courseId) {
+      if (document.course?.instructorId !== user.id && document.uploaderId !== user.id) {
+        const error = new Error('Forbidden: You do not have permission to download this material');
+        error.statusCode = 403;
+        throw error;
+      }
+    }
+
+    const buffer = await storageService.getFileBuffer(document.storageKey);
+    return { document, buffer };
   }
 
   /**

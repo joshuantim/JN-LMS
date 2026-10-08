@@ -36,6 +36,21 @@ export class DocumentController {
     }
   }
 
+  static async downloadDocument(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { document, buffer } = await DocumentService.downloadDocument(id, req.user);
+
+      res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(document.fileName)}"`);
+      res.setHeader('Content-Length', buffer.length);
+
+      return res.send(buffer);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getDocumentChunks(req, res, next) {
     try {
       const { id } = req.params;

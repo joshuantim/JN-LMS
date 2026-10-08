@@ -17,6 +17,7 @@ import {
   X,
   GraduationCap,
   Brain,
+  Folder,
 } from 'lucide-react';
 
 export const Sidebar = ({ isOpen, onClose }) => {
@@ -33,7 +34,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const studentNav = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'My Courses', path: '/courses', icon: BookOpen },
-    { name: 'Study Documents', path: '/documents', icon: FileText },
+    { name: 'Resources', path: '/resources', icon: Folder },
     { name: 'Assignments', path: '/assignments', icon: Award },
     { name: 'Quizzes', path: '/quizzes', icon: HelpCircle },
     { name: 'Grades', path: '/grades', icon: Award },
@@ -47,7 +48,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const instructorNav = [
     { name: 'Dashboard', path: '/instructor', icon: LayoutDashboard },
     { name: 'My Courses', path: '/courses', icon: BookOpen },
-    { name: 'Course Documents', path: '/documents', icon: FileText },
+    { name: 'Resources', path: '/resources', icon: Folder },
     { name: 'Question Bank', path: '/question-bank', icon: HelpCircle },
     { name: 'Grading & Submissions', path: '/grading', icon: Award },
     { name: 'AI Study Hub', path: '/study-hub', icon: Brain, highlight: true },
@@ -61,6 +62,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Admin Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'User Management', path: '/admin/users', icon: Users },
     { name: 'Course Directory', path: '/admin/courses', icon: BookOpen },
+    { name: 'Site Resources', path: '/resources', icon: Folder },
     { name: 'System Analytics', path: '/admin/analytics', icon: BarChart3 },
     { name: 'AI Usage & Costs', path: '/admin/ai-usage', icon: Sparkles, highlight: true },
     { name: 'Global Settings', path: '/settings', icon: Settings },

@@ -29,6 +29,7 @@ import DiscussionDetailPage from '../pages/discussions/DiscussionDetailPage';
 import AcademicCalendarPage from '../pages/calendar/AcademicCalendarPage';
 import InstructorAnalyticsPage from '../pages/analytics/InstructorAnalyticsPage';
 import DocumentsPage from '../pages/documents/DocumentsPage';
+import ResourcesPage from '../pages/resources/ResourcesPage';
 import AIAssistantPage from '../pages/ai/AIAssistantPage';
 import AIStudyHubPage from '../pages/ai/AIStudyHubPage';
 import AIUsagePage from '../pages/admin/AIUsagePage';
@@ -78,8 +79,9 @@ export const AppRoutes = () => {
           <Route path="/discussions/:id" element={<DiscussionDetailPage />} />
           <Route path="/calendar" element={<AcademicCalendarPage />} />
 
-          {/* Phase 5 AI Document Knowledge Base */}
-          <Route path="/documents" element={<DocumentsPage />} />
+          {/* Site Resources & Learning Materials */}
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/documents" element={<ResourcesPage />} />
 
           {/* Phase 6 & 7 AI Learning Station & Assistant */}
           <Route path="/ai-assistant" element={<AIAssistantPage />} />

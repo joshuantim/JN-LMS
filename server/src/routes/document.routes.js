@@ -11,6 +11,7 @@ router.use(authenticate);
 router.post('/upload', uploadLimiter, documentUpload.single('file'), DocumentController.uploadDocument);
 router.get('/', DocumentController.listDocuments);
 router.get('/:id', DocumentController.getDocumentById);
+router.get('/:id/download', DocumentController.downloadDocument);
 router.get('/:id/chunks', DocumentController.getDocumentChunks);
 router.delete('/:id', DocumentController.deleteDocument);
 
